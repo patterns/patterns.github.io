@@ -34,8 +34,8 @@ We had a regular D-Link ethernet hub that was good to go from the OpenBSD box an
 
 Not as power efficient as the SOC options. So when summer rolls around and temps rise, it may be important to investigate the NanoPi again.
 
+=====
 
-          -----
 ## * Notes, Lessons, Monologue
 * Why? Our EdgeRouter Lite stopped working. Similar to one of the articles, we thought about buying a replacement and for some period we swapped in the wifi router in dual role of uplink and wifi access. After reading and searching, very close to ordering the NanoPi R4S. Then saw our under utilized old NAS server which ran SmartOS from Joyent. Also a build from Ars guides.
 * OpenBSD? This was our favorite OS in the distant past (95/96?) and we revisited before until it wasn't convenient to run your own SMTP/DNS/HTTPD server. It still seems as good as ever, if not better (has ARM support in the field).

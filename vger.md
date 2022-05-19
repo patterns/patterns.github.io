@@ -15,8 +15,8 @@ For Cloudflare DNS, we want to stop the proxy option on the A and CNAME records 
 
 We may need to add the cron job to renew the certificate in 90 days. Skipped it for now.
 
+=====
 
-          -----
 ## * Notes, Lessons, Monologue
 * Is Gemini good? The protocol has many critics and the FAQ addresses the most pressing concerns. There it's stated that the purpose is not to replace web pages, but rather to fill the space between Mercury/Gopher and Apollo/Web. Reading these limitations, it reminded me of the early days of Twitter when messages were only 128 characters, and adopters tried to explain its immediacy.
 * Why abandon CSS styling? The FAQ answer promotes the responsiblity of presentation to the client. It states matter of factly that each user has their own preference, and basically how ridiculous the demand can be on the implementation to achieve a consistent user experience. To some, this may seem like a relinquishing of the problem. However in my mind, this is great in its admission of real world stresses. One of the claims that surface weekly now that makes me chuckle is that the web browser promise was to develop once and have your app run across platforms. How naive we were. 
