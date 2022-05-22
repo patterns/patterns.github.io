@@ -16,10 +16,9 @@ To begin the recovery flow, we use the prompt bit for self-signed certificates. 
 
 ```
 func knownCapsules(ctx context.Context, capsule string, cert *x509.Certificate, isv Mask) bool {
+	if !isv.Has(PromptUAE) {
 		return false
 	}
-	if !isv.Has(PromptUAE) {
-
 ```
 
 We made this bitmask configurable (via the `-json` commandline argument), and assigned in the safe defaults as prompt (`gmi.PromptUAE`). 
