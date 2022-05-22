@@ -1,29 +1,30 @@
 # SSH InsecureIgnoreHostKey
-Short list of articles that helped:
+
 [=> SSH Host Key](https://skarlso.github.io/2019/02/17/go-ssh-with-host-key-verification/)
 [=> TLS Steps](https://gemini.circumlunar.space/docs/tls-tutorial.gmi)
+[=> SSH](https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process)
 
 ## §1 /TOFU
-Among our tasks was emulating the way SSH negotiates the first connection to the remote. The user prompt to continue was already familiar. This interaction is important because our dialer must keep the known_hosts file to track "trusted" capsules. The other subtle point is the reason behind this act of trust -- self-signed certificate. Meaning, capsules on self-signed certificates are assumed to be a fast path to launching Gemini content, and common place. To sum up:
+Among our tasks was how to mimic the way SSH negotiates the first connection to a remote. The user continue prompt was already a familiar interaction. Important because our dialer must keep the `known_hosts` file to track "trusted" capsules. The other subtle point is the reason behind this act of trust -- the self-signed certificate. Meaning, capsules on self-signed certificates are assumed to be a fast path to launching Gemini content, and common place. To sum up:
 
-* keep known_hosts file 
+* keep `known_hosts` file 
 * prompt user to confirm first visit
 * identify self-signed certificates
 
 ## §2 /Known_capsules
-To begin the recovery flow, we use the "prompt" flag on self-signed certificates. The other flag values are AcceptSSC and SSCReject which mean continue and halt (respectively):
+To begin the recovery flow, we use the prompt bit for self-signed certificates. The other recovery bit flags are `gmi.AcceptUAE` and `gmi.UAEReject` which mean continue and halt, respectively:
 
 ```
 func knownCapsules(ctx context.Context, capsule string, cert *x509.Certificate, isv Mask) bool {
-	if !isv.Has(PromptSSC) {
 		return false
 	}
+	if !isv.Has(PromptUAE) {
 
 ```
 
-We made this flag configurable (via the -json commandline argument), and assigned in the safe defaults as "prompt" (gmi.PromptSSC). 
+We made this bitmask configurable (via the `-json` commandline argument), and assigned in the safe defaults as prompt (`gmi.PromptUAE`). 
 
-Then the "trick" is to invoke HostKeyCallback from the ssh/knownhosts package: 
+Then the "trick" is to invoke `HostKeyCallback`: 
 
 ```
 import kh "golang.org/x/crypto/ssh/knownhosts"
@@ -55,10 +56,14 @@ func searchKnown(cert *x509.Certificate, capsule string, kcp string) error {
 	}
 ```
 
-Also, we use the filename "known_capsules" to emphasize that the remotes are capsules that are tracked, instead of SSH hosts.
+The `ssh/knownhosts` package has the `New()` function which creates a callback for us. We just need to supply the absolute path to our `known_capsules` file.
+
+Also, we use the filename `known_capsules` to emphasize that the remotes are capsules that are tracked, instead of SSH hosts.
+
+The callback takes capsule name, IP address, and public key as parameters. To find the public key, we obtain the public key of the certificate, then use `ssh.NewPublicKey`.
 
 ## §3 /User Prompt
-For the time being, we have a placeholder. The log output shows the step/event where it is appropriate to make the UI to prompt the user. Currently, it acts as if the choice is 'Y' and continues. It's worth noting because it is a todo, and it maps out the continue flow. For continue flow, the new remote needs a) its public key produced, and b) to be appended to the known_hosts file:
+For the time being, we have a placeholder. The log output shows the step/event where it is appropriate to make the UI to prompt the user. Currently, it acts as if the choice is `Y` and continues. It's worth pointing out because we have a todo, and it maps out the continue flow. For continue flow, the new remote needs a) its public key produced, and b) to be appended to the `known_hosts` file:
 
 ```
 	sshpk, err := ssh.NewPublicKey(cert.PublicKey)
@@ -80,7 +85,7 @@ For the time being, we have a placeholder. The log output shows the step/event w
 
 
 ## §4 /Self-signed Cert
-Sounds weird, but the TLS dial has to fail THEN we have an error (more in notes below). This error can be cast into different types. x509.UnknownAuthorityError occurs for self-signed certificates because the CA is not recognized.
+Sounds weird, but the TLS dial has to fail THEN we have an error (more in notes below). This error can be cast into different types. `x509.UnknownAuthorityError` occurs for self-signed certificates because the CA is not recognized.
 
 Snippet of code that identifies self-signed certificates:
 
@@ -96,13 +101,11 @@ func certFrom(err error) *x509.Certificate {
 ---
 
 ## * Notes, Lessons, Monologue
-* When? During prototype/poc, when iterating inside controlled networks; when you want to concentrate on the functional requirements. The part I really like is the naming clearly identifies InsecureIgnoreHostKey as dangerous. So any code review should easily flag it when found in commits.
+* When? During prototype/poc, when iterating inside controlled networks; when you want to concentrate on the functional requirements. The part I really like is the naming clearly identifies `InsecureIgnoreHostKey` as dangerous. So any code review should easily flag it when found in commits.
 
-* Self-signed certs? It can be argued whether self-signed certificates are too much risk. May be historical, and as time progresses it will change. Let's Encrypt definitely changed things for the better. I was able to obtain a certificate with their CA for free. You have to own a domain name, and be able to configure httpd to respond to the ACME requests. So in theory, all web servers can stop hanging on to self-signed certificates.
+* Self-signed certs? It can be argued whether self-signed certs are too much risk. May be historical, and as time progresses it will change. *Let's Encrypt* definitely changed things for the better. I was able to obtain a cert with their CA for __free__. You need your own domain name, and be able to configure httpd to respond to the ACME requests. So in theory, all web servers can say goodbye to self-signed certs.
 
-* Why waste TLS dial for the error type? I know it seems wasteful. Consider this. The best flow is the standard TLS dial with all the checks in Verify. So making the initial TLS dial is actually our ideal, and the "recovery" flow is to accomodate (Gemini) self-signed certs.
+* Why waste TLS dial for the error type? I know it seems wasteful. Consider this. The best flow is the standard TLS dial with all the checks in verify. So making the initial TLS dial is actually our ideal, and the recovery flow is to accomodate (Gemini) self-signed certs.
 
----
-
-2022 興怡 | Always wrong, sometimes lucky
+###### 2022 興怡 | Always wrong, sometimes lucky
 
