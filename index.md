@@ -16,6 +16,6 @@
 ---
 
 [=> About](about.html)
-[=> WWW archive](https://www.tfx.tw/)
+[=> WWW archive](https://www.tfx.tw/2020/)
 
 ###### 2022 興怡 | Always wrong, sometimes lucky
